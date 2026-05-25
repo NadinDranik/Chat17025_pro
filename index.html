@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRO 17025 Chat</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      color: #1f2933;
+    }
+
+    .app {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 320px;
+      background: #111827;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 18px;
+    }
+
+    .brand {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-bottom: 18px;
+    }
+
+    .folder-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .folder-form input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .add-btn {
+      background: #2563eb;
+      color: white;
+    }
+
+    .folders {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .folder {
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      background: #1f2937;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .folder:hover {
+      background: #374151;
+    }
+
+    .folder.active {
+      background: #2563eb;
+    }
+
+    .folder-name {
+      font-size: 14px;
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .delete-folder {
+      background: transparent;
+      color: #e5e7eb;
+      padding: 4px 6px;
+      font-size: 14px;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .chat-header {
+      background: white;
+      padding: 18px 24px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chat-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .clear-btn {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .message {
+      max-width: 760px;
+      background: white;
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+    }
+
+    .message-meta {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    .message-text {
+      white-space: pre-wrap;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+
+    .attachment {
+      margin-top: 10px;
+      padding: 10px;
+      background: #f1f5f9;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+
+    .attachment a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .composer {
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      padding: 16px 24px;
+    }
+
+    .composer textarea {
+      width: 100%;
+      min-height: 80px;
+      resize: vertical;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      font-family: Arial, sans-serif;
+      font-size: 15px;
+      outline: none;
+      margin-bottom: 10px;
+    }
+
+    .composer-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .composer input[type="url"] {
+      flex: 1;
+      min-width: 220px;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    .file-input {
+      font-size: 14px;
+    }
+
+    .send-btn {
+      background: #16a34a;
+      color: white;
+    }
+
+    .empty {
+      color: #64748b;
+      text-align: center;
+      margin-top: 80px;
+      font-size: 16px;
+    }
+
+    @media (max-width: 800px) {
+      .app {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: 260px;
+      }
+
+      .main {
+        height: calc(100vh - 260px);
+      }
+
+      .chat-header {
+        padding: 14px;
+      }
+
+      .messages {
+        padding: 14px;
+      }
+
+      .composer {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">PRO 17025 Chat</div>
+    <div class="subtitle">Папки с обсуждениями, материалами и вопросами</div>
+
+    <div class="folder-form">
+      <input id="folderInput" type="text" placeholder="Новая папка" />
+      <button class="add-btn" onclick="addFolder()">+</button>
+    </div>
+
+    <div id="folders" class="folders"></div>
+  </aside>
+
+  <main class="main">
+    <header class="chat-header">
+      <div>
+        <div id="chatTitle" class="chat-title"></div>
+      </div>
+      <button class="clear-btn" onclick="clearChat()">Очистить чат</button>
+    </header>
+
+    <section id="messages" class="messages"></section>
+
+    <footer class="composer">
+      <textarea id="messageInput" placeholder="Напишите сообщение..."></textarea>
+
+      <div class="composer-row">
+        <input id="linkInput" type="url" placeholder="Ссылка, если нужна" />
+        <input id="fileInput" class="file-input" type="file" />
+        <button class="send-btn" onclick="sendMessage()">Отправить</button>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<script>
+  const STORAGE_KEY = "pro17025_chat_app";
+
+  let appData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+    activeFolderId: "general",
+    folders: [
+      { id: "general", name: "Общие вопросы", messages: [] },
+      { id: "p62", name: "Пункт 6.2 Персонал", messages: [] },
+      { id: "p64", name: "Пункт 6.4 Оборудование", messages: [] },
+      { id: "p72", name: "Пункт 7.2 Методики", messages: [] },
+      { id: "p77", name: "Пункт 7.7 Достоверность", messages: [] },
+      { id: "p85", name: "Пункт 8.5 Риски", messages: [] },
+      { id: "p87", name: "Пункт 8.7 Корректирующие действия", messages: [] },
+      { id: "p89", name: "Пункт 8.9 АСР", messages: [] }
+    ]
+  };
+
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+  }
+
+  function getActiveFolder() {
+    return appData.folders.find(folder => folder.id === appData.activeFolderId);
+  }
+
+  function renderFolders() {
+    const foldersContainer = document.getElementById("folders");
+    foldersContainer.innerHTML = "";
+
+    appData.folders.forEach(folder => {
+      const item = document.createElement("div");
+      item.className = "folder" + (folder.id === appData.activeFolderId ? " active" : "");
+
+      const name = document.createElement("div");
+      name.className = "folder-name";
+      name.textContent = folder.name;
+
+      const del = document.createElement("button");
+      del.className = "delete-folder";
+      del.textContent = "×";
+      del.title = "Удалить папку";
+      del.onclick = (event) => {
+        event.stopPropagation();
+        deleteFolder(folder.id);
+      };
+
+      item.onclick = () => {
+        appData.activeFolderId = folder.id;
+        saveData();
+        renderApp();
+      };
+
+      item.appendChild(name);
+
+      if (appData.folders.length > 1) {
+        item.appendChild(del);
+      }
+
+      foldersContainer.appendChild(item);
+    });
+  }
+
+  function renderMessages() {
+    const activeFolder = getActiveFolder();
+    const messagesContainer = document.getElementById("messages");
+    const chatTitle = document.getElementById("chatTitle");
+
+    chatTitle.textContent = activeFolder ? activeFolder.name : "Чат";
+    messagesContainer.innerHTML = "";
+
+    if (!activeFolder || activeFolder.messages.length === 0) {
+      messagesContainer.innerHTML = '<div class="empty">Пока сообщений нет. Начните обсуждение.</div>';
+      return;
+    }
+
+    activeFolder.messages.forEach(message => {
+      const card = document.createElement("div");
+      card.className = "message";
+
+      const meta = document.createElement("div");
+      meta.className = "message-meta";
+      meta.textContent = message.date;
+
+      const text = document.createElement("div");
+      text.className = "message-text";
+      text.textContent = message.text;
+
+      card.appendChild(meta);
+      card.appendChild(text);
+
+      if (message.link) {
+        const linkBox = document.createElement("div");
+        linkBox.className = "attachment";
+        linkBox.innerHTML = `Ссылка: <a href="${message.link}" target="_blank">${message.link}</a>`;
+        card.appendChild(linkBox);
+      }
+
+      if (message.fileName) {
+        const fileBox = document.createElement("div");
+        fileBox.className = "attachment";
+        fileBox.textContent = "Файл: " + message.fileName;
+        card.appendChild(fileBox);
+      }
+
+      messagesContainer.appendChild(card);
+    });
+
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  function renderApp() {
+    renderFolders();
+    renderMessages();
+  }
+
+  function addFolder() {
+    const input = document.getElementById("folderInput");
+    const name = input.value.trim();
+
+    if (!name) return;
+
+    const newFolder = {
+      id: "folder_" + Date.now(),
+      name,
+      messages: []
+    };
+
+    appData.folders.push(newFolder);
+    appData.activeFolderId = newFolder.id;
+
+    input.value = "";
+    saveData();
+    renderApp();
+  }
+
+  function deleteFolder(folderId) {
+    if (appData.folders.length <= 1) return;
+
+    const folder = appData.folders.find(item => item.id === folderId);
+    const confirmed = confirm(`Удалить папку «${folder.name}» вместе со всеми сообщениями?`);
+
+    if (!confirmed) return;
+
+    appData.folders = appData.folders.filter(item => item.id !== folderId);
+
+    if (appData.activeFolderId === folderId) {
+      appData.activeFolderId = appData.folders[0].id;
+    }
+
+    saveData();
+    renderApp();
+  }
+
+  function sendMessage() {
+    const textInput = document.getElementById("messageInput");
+    const linkInput = document.getElementById("linkInput");
+    const fileInput = document.getElementById("fileInput");
+
+    const text = textInput.value.trim();
+    const link = linkInput.value.trim();
+    const file = fileInput.files[0];
+
+    if (!text && !link && !file) return;
+
+    const activeFolder = getActiveFolder();
+
+    activeFolder.messages.push({
+      id: "msg_" + Date.now(),
+      text: text || "Без текста",
+      link,
+      fileName: file ? file.name : "",
+      date: new Date().toLocaleString("ru-RU")
+    });
+
+    textInput.value = "";
+    linkInput.value = "";
+    fileInput.value = "";
+
+    saveData();
+    renderApp();
+  }
+
+  function clearChat() {
+    const activeFolder = getActiveFolder();
+
+    if (!activeFolder) return;
+
+    const confirmed = confirm(`Очистить чат в папке «${activeFolder.name}»?`);
+
+    if (!confirmed) return;
+
+    activeFolder.messages = [];
+    saveData();
+    renderApp();
+  }
+
+  document.getElementById("messageInput").addEventListener("keydown", function(event) {
+    if (event.key === "Enter" && event.ctrlKey) {
+      sendMessage();
+    }
+  });
+
+  renderApp();
+</script>
+
+</body>
+</html>

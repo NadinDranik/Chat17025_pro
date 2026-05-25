@@ -1,0 +1,16 @@
+{
+  "name": "pro17025-chat",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Локальный чат по темам ISO/IEC 17025 (папки, localStorage)",
+  "scripts": {
+    "start": "npx --yes serve -l 3000 ."
+  },
+  "keywords": [
+    "17025",
+    "iso",
+    "chat",
+    "static"
+  ],
+  "license": "MIT"
+}
